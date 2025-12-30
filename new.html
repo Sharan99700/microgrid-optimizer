@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indian Army Microgrid Optimizer - PSO & WOA</title>
+    <title>Microgrid Optimizer - PSO & WOA</title>
     <style>
         * {
             margin: 0;
@@ -329,10 +329,10 @@
 </head>
 <body>
     <div class="header">
-        <div class="emblem">⚔️</div>
-        <h1>🇮🇳 Indian Army Microgrid Optimizer</h1>
+        <div class="emblem">⚡</div>
+        <h1>Microgrid Optimizer</h1>
         <p>Advanced Energy Management System with PSO & WOA</p>
-        <p style="font-size: 0.9em; margin-top: 5px;">Service Before Self | सेवा परमो धर्मः</p>
+        <p style="font-size: 0.9em; margin-top: 5px;">Optimizing Renewable Energy Systems</p>
     </div>
 
     <div class="container">
@@ -340,12 +340,12 @@
         <div class="card">
             <h2>⚙️ Microgrid Configuration</h2>
             <div class="input-group">
-                <label>Base/Camp Name:</label>
-                <input type="text" id="baseName" placeholder="e.g., Siachen Base Camp" value="Siachen Base Camp">
+                <label>Base/Site Name:</label>
+                <input type="text" id="baseName" placeholder="e.g., Mountain Base Camp" value="Remote Site Alpha">
             </div>
             <div class="input-group">
                 <label>Location:</label>
-                <input type="text" id="location" placeholder="e.g., Ladakh" value="Ladakh">
+                <input type="text" id="location" placeholder="e.g., Mountain Region" value="Remote Area">
             </div>
             <div class="input-group">
                 <label>Solar Panel Capacity (kW):</label>
@@ -438,8 +438,8 @@
     </div>
 
     <div class="footer">
-        <p>🇮🇳 Developed for Indian Army | Optimizing Energy for National Defense</p>
-        <p>Jai Hind | जय हिन्द</p>
+        <p>⚡ Advanced Microgrid Optimization | Sustainable Energy Solutions</p>
+        <p>Powered by PSO & WOA Algorithms</p>
     </div>
 
     <script>
@@ -619,8 +619,8 @@
         // ==================== GET CONFIGURATION ====================
         function getConfiguration() {
             return {
-                baseName: document.getElementById('baseName').value || 'Military Base',
-                location: document.getElementById('location').value || 'India',
+                baseName: document.getElementById('baseName').value || 'Site',
+                location: document.getElementById('location').value || 'Location',
                 solarCap: parseFloat(document.getElementById('solarCap').value),
                 windCap: parseFloat(document.getElementById('windCap').value),
                 dieselCap: parseFloat(document.getElementById('dieselCap').value),
