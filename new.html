@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Army Microgrid Optimizer - PSO & WOA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            color: #000;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #000;
+            font-size: 1.1em;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .emblem {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #ff9933;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #ff9933;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #ff9933;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff9933 0%, #ff6b6b 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255,153,51,0.4);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,153,51,0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #138808 0%, #0d5f06 100%);
+            margin-top: 10px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(19,136,8,0.2);
+            border-radius: 10px;
+            border-left: 4px solid #138808;
+        }
+
+        .results h3 {
+            color: #138808;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.3s ease;
+        }
+
+        .metric:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 500;
+        }
+
+        .metric-value {
+            color: #ff9933;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 400px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .optimization-status {
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .status-running {
+            background: rgba(255,193,7,0.3);
+            color: #ffc107;
+            border: 2px solid #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-complete {
+            background: rgba(76,175,80,0.3);
+            color: #4caf50;
+            border: 2px solid #4caf50;
+        }
+
+        .equipment-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .equipment-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .equipment-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+
+        .equipment-item strong {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #ff9933;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #138808, #ff9933);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .comparison-table th {
+            background: rgba(255,153,51,0.2);
+            color: #ff9933;
+            font-weight: bold;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+
+        .alert-warning {
+            background: rgba(255,193,7,0.2);
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+
+        .alert-success {
+            background: rgba(76,175,80,0.2);
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .equipment-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 30px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="emblem">⚔️</div>
+        <h1>🇮🇳 Indian Army Microgrid Optimizer</h1>
+        <p>Advanced Energy Management System with PSO & WOA</p>
+        <p style="font-size: 0.9em; margin-top: 5px;">Service Before Self | सेवा परमो धर्मः</p>
+    </div>
+
+    <div class="container">
+        <!-- Configuration Card -->
+        <div class="card">
+            <h2>⚙️ Microgrid Configuration</h2>
+            <div class="input-group">
+                <label>Base/Camp Name:</label>
+                <input type="text" id="baseName" placeholder="e.g., Siachen Base Camp" value="Siachen Base Camp">
+            </div>
+            <div class="input-group">
+                <label>Location:</label>
+                <input type="text" id="location" placeholder="e.g., Ladakh" value="Ladakh">
+            </div>
+            <div class="input-group">
+                <label>Solar Panel Capacity (kW):</label>
+                <input type="number" id="solarCap" value="100" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label>Wind Turbine Capacity (kW):</label>
+                <input type="number" id="windCap" value="50" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label>Diesel Generator Capacity (kW):</label>
+                <input type="number" id="dieselCap" value="150" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label>Battery Storage (kWh):</label>
+                <input type="number" id="batteryCap" value="200" min="0" step="1">
+            </div>
+            <div class="input-group">
+                <label>Peak Load Demand (kW):</label>
+                <input type="number" id="loadDemand" value="120" min="0" step="1">
+            </div>
+        </div>
+
+        <!-- Environmental Parameters Card -->
+        <div class="card">
+            <h2>🌍 Environmental Parameters</h2>
+            <div class="input-group">
+                <label>Solar Irradiance (W/m²):</label>
+                <input type="number" id="solarIrr" value="800" min="0" max="1000" step="10">
+            </div>
+            <div class="input-group">
+                <label>Wind Speed (m/s):</label>
+                <input type="number" id="windSpeed" value="7" min="0" max="30" step="0.5">
+            </div>
+            <div class="input-group">
+                <label>Temperature (°C):</label>
+                <input type="number" id="temperature" value="25" min="-40" max="50" step="1">
+            </div>
+            <div class="input-group">
+                <label>Diesel Price (₹/liter):</label>
+                <input type="number" id="dieselPrice" value="90" min="0" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Optimization Algorithm:</label>
+                <select id="algorithm">
+                    <option value="pso">Particle Swarm Optimization (PSO)</option>
+                    <option value="woa">Whale Optimization Algorithm (WOA)</option>
+                    <option value="hybrid">Hybrid PSO-WOA</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Optimization Iterations:</label>
+                <input type="number" id="iterations" value="50" min="10" max="200" step="10">
+            </div>
+            <button class="btn" onclick="runOptimization()">🚀 Run Optimization</button>
+            <button class="btn btn-secondary" onclick="compareAlgorithms()">📊 Compare All Algorithms</button>
+        </div>
+
+        <!-- Optimization Results Card -->
+        <div class="card full-width">
+            <h2>📈 Optimization Results</h2>
+            <div id="statusDiv"></div>
+            <div id="resultsDiv"></div>
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <!-- Energy Sources Allocation Card -->
+        <div class="card">
+            <h2>⚡ Energy Sources Allocation</h2>
+            <div class="equipment-list" id="energySources"></div>
+        </div>
+
+        <!-- Cost Analysis Card -->
+        <div class="card">
+            <h2>💰 Cost Analysis</h2>
+            <div id="costAnalysis"></div>
+        </div>
+
+        <!-- Algorithm Comparison Card -->
+        <div class="card full-width" id="comparisonCard" style="display: none;">
+            <h2>🔬 Algorithm Comparison</h2>
+            <div id="comparisonResults"></div>
+        </div>
+
+        <!-- System Statistics Card -->
+        <div class="card full-width">
+            <h2>📊 System Statistics</h2>
+            <div id="systemStats"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🇮🇳 Developed for Indian Army | Optimizing Energy for National Defense</p>
+        <p>Jai Hind | जय हिन्द</p>
+    </div>
+
+    <script>
+        // ==================== PARTICLE CLASS ====================
+        class Particle {
+            constructor(dim) {
+                this.position = new Array(dim).fill(0).map(() => Math.random());
+                this.velocity = new Array(dim).fill(0).map(() => (Math.random() - 0.5) * 0.1);
+                this.bestPosition = [...this.position];
+                this.bestFitness = Infinity;
+            }
+        }
+
+        // ==================== WHALE CLASS ====================
+        class Whale {
+            constructor(dim) {
+                this.position = new Array(dim).fill(0).map(() => Math.random());
+                this.fitness = Infinity;
+            }
+        }
+
+        // ==================== FITNESS CALCULATION ====================
+        function calculateFitness(position, config) {
+            const solarOut = position[0] * config.solarCap * (config.solarIrr / 1000);
+            const windOut = position[1] * config.windCap * Math.pow(config.windSpeed / 10, 3);
+            const dieselOut = position[2] * config.dieselCap;
+            const batteryOut = position[3] * config.batteryCap * 0.5;
+
+            const totalGen = solarOut + windOut + dieselOut + batteryOut;
+            const shortfall = Math.max(0, config.loadDemand - totalGen);
+            
+            const dieselCost = dieselOut * 0.3 * config.dieselPrice;
+            const maintenanceCost = (solarOut * 0.5 + windOut * 0.8 + dieselOut * 2);
+            const batteryCost = batteryOut * 0.2;
+            const penaltyCost = shortfall * 1000;
+            const emissionCost = dieselOut * 2.5;
+            
+            return dieselCost + maintenanceCost + batteryCost + penaltyCost + emissionCost;
+        }
+
+        // ==================== PSO ALGORITHM ====================
+        function particleSwarmOptimization(config, iterations) {
+            const swarmSize = 30;
+            const dim = 4;
+            const particles = Array.from({length: swarmSize}, () => new Particle(dim));
+            let globalBestPosition = [...particles[0].position];
+            let globalBestFitness = Infinity;
+            const history = [];
+
+            const w = 0.7;
+            const c1 = 1.5;
+            const c2 = 1.5;
+
+            for (let iter = 0; iter < iterations; iter++) {
+                for (let p of particles) {
+                    const fitness = calculateFitness(p.position, config);
+                    
+                    if (fitness < p.bestFitness) {
+                        p.bestFitness = fitness;
+                        p.bestPosition = [...p.position];
+                    }
+                    
+                    if (fitness < globalBestFitness) {
+                        globalBestFitness = fitness;
+                        globalBestPosition = [...p.position];
+                    }
+                }
+
+                for (let p of particles) {
+                    for (let d = 0; d < dim; d++) {
+                        const r1 = Math.random();
+                        const r2 = Math.random();
+                        p.velocity[d] = w * p.velocity[d] + 
+                                       c1 * r1 * (p.bestPosition[d] - p.position[d]) +
+                                       c2 * r2 * (globalBestPosition[d] - p.position[d]);
+                        p.position[d] = Math.max(0, Math.min(1, p.position[d] + p.velocity[d]));
+                    }
+                }
+
+                history.push({iteration: iter + 1, fitness: globalBestFitness});
+            }
+
+            return {
+                position: globalBestPosition, 
+                fitness: globalBestFitness, 
+                history: history,
+                algorithm: 'PSO'
+            };
+        }
+
+        // ==================== WOA ALGORITHM ====================
+        function whaleOptimization(config, iterations) {
+            const whaleCount = 30;
+            const dim = 4;
+            const whales = Array.from({length: whaleCount}, () => new Whale(dim));
+            let leader = whales[0];
+            const history = [];
+
+            for (let whale of whales) {
+                whale.fitness = calculateFitness(whale.position, config);
+                if (whale.fitness < leader.fitness) {
+                    leader = whale;
+                }
+            }
+
+            for (let iter = 0; iter < iterations; iter++) {
+                const a = 2 - iter * (2 / iterations);
+
+                for (let whale of whales) {
+                    const r = Math.random();
+                    const A = 2 * a * r - a;
+                    const C = 2 * r;
+                    const p = Math.random();
+                    const l = Math.random() * 2 - 1;
+
+                    for (let d = 0; d < dim; d++) {
+                        if (p < 0.5) {
+                            if (Math.abs(A) < 1) {
+                                const D = Math.abs(C * leader.position[d] - whale.position[d]);
+                                whale.position[d] = leader.position[d] - A * D;
+                            } else {
+                                const randWhale = whales[Math.floor(Math.random() * whaleCount)];
+                                const D = Math.abs(C * randWhale.position[d] - whale.position[d]);
+                                whale.position[d] = randWhale.position[d] - A * D;
+                            }
+                        } else {
+                            const D = Math.abs(leader.position[d] - whale.position[d]);
+                            whale.position[d] = D * Math.exp(l) * Math.cos(2 * Math.PI * l) + leader.position[d];
+                        }
+                        whale.position[d] = Math.max(0, Math.min(1, whale.position[d]));
+                    }
+
+                    whale.fitness = calculateFitness(whale.position, config);
+                    if (whale.fitness < leader.fitness) {
+                        leader = whale;
+                    }
+                }
+
+                history.push({iteration: iter + 1, fitness: leader.fitness});
+            }
+
+            return {
+                position: leader.position, 
+                fitness: leader.fitness, 
+                history: history,
+                algorithm: 'WOA'
+            };
+        }
+
+        // ==================== HYBRID PSO-WOA ====================
+        function hybridOptimization(config, iterations) {
+            const halfIter = Math.floor(iterations / 2);
+            
+            const psoResult = particleSwarmOptimization(config, halfIter);
+            const woaResult = whaleOptimization(config, halfIter);
+            
+            const combinedHistory = [
+                ...psoResult.history,
+                ...woaResult.history.map((h, i) => ({
+                    iteration: halfIter + i + 1,
+                    fitness: h.fitness
+                }))
+            ];
+            
+            const bestResult = psoResult.fitness < woaResult.fitness ? psoResult : woaResult;
+            
+            return {
+                position: bestResult.position,
+                fitness: bestResult.fitness,
+                history: combinedHistory,
+                algorithm: 'Hybrid PSO-WOA',
+                psoFitness: psoResult.fitness,
+                woaFitness: woaResult.fitness
+            };
+        }
+
+        // ==================== GET CONFIGURATION ====================
+        function getConfiguration() {
+            return {
+                baseName: document.getElementById('baseName').value || 'Military Base',
+                location: document.getElementById('location').value || 'India',
+                solarCap: parseFloat(document.getElementById('solarCap').value),
+                windCap: parseFloat(document.getElementById('windCap').value),
+                dieselCap: parseFloat(document.getElementById('dieselCap').value),
+                batteryCap: parseFloat(document.getElementById('batteryCap').value),
+                loadDemand: parseFloat(document.getElementById('loadDemand').value),
+                solarIrr: parseFloat(document.getElementById('solarIrr').value),
+                windSpeed: parseFloat(document.getElementById('windSpeed').value),
+                temperature: parseFloat(document.getElementById('temperature').value),
+                dieselPrice: parseFloat(document.getElementById('dieselPrice').value)
+            };
+        }
+
+        // ==================== RUN OPTIMIZATION ====================
+        function runOptimization() {
+            const config = getConfiguration();
+            const algorithm = document.getElementById('algorithm').value;
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            document.getElementById('statusDiv').innerHTML = 
+                '<div class="optimization-status status-running">⚙️ Optimization in progress... Please wait</div>';
+
+            setTimeout(() => {
+                let result;
+                if (algorithm === 'pso') {
+                    result = particleSwarmOptimization(config, iterations);
+                } else if (algorithm === 'woa') {
+                    result = whaleOptimization(config, iterations);
+                } else {
+                    result = hybridOptimization(config, iterations);
+                }
+
+                displayResults(result, config);
+                plotConvergence(result.history);
+                displaySystemStats(result, config);
+            }, 100);
+        }
+
+        // ==================== COMPARE ALGORITHMS ====================
+        function compareAlgorithms() {
+            const config = getConfiguration();
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            document.getElementById('statusDiv').innerHTML = 
+                '<div class="optimization-status status-running">⚙️ Running all algorithms... Please wait</div>';
+
+            setTimeout(() => {
+                const psoResult = particleSwarmOptimization(config, iterations);
+                const woaResult = whaleOptimization(config, iterations);
+                const hybridResult = hybridOptimization(config, iterations);
+
+                const results = [psoResult, woaResult, hybridResult];
+                const bestResult = results.reduce((best, current) => 
+                    current.fitness < best.fitness ? current : best
+                );
+
+                displayResults(bestResult, config);
+                displayComparison(results, config);
+                plotMultipleConvergence([psoResult.history, woaResult.history, hybridResult.history]);
+                displaySystemStats(bestResult, config);
+            }, 100);
+        }
+
+        // ==================== DISPLAY RESULTS ====================
+        function displayResults(result, config) {
+            const solarOut = result.position[0] * config.solarCap * (config.solarIrr / 1000);
+            const windOut = result.position[1] * config.windCap * Math.pow(config.windSpeed / 10, 3);
+            const dieselOut = result.position[2] * config.dieselCap;
+            const batteryOut = result.position[3] * config.batteryCap * 0.5;
+            const totalGen = solarOut + windOut + dieselOut + batteryOut;
+            const efficiency = (totalGen / config.loadDemand * 100).toFixed(1);
+
+            document.getElementById('statusDiv').innerHTML = 
+                '<div class="optimization-status status-complete">✅ Optimization Complete!</div>';
+
+            const alertType = totalGen >= config.loadDemand ? 'alert-success' : 'alert-warning';
+            const alertMessage = totalGen >= config.loadDemand ? 
+                '✓ Load demand satisfied with optimal configuration' : 
+                '⚠ Warning: Current configuration cannot meet peak load demand';
+
+            document.getElementById('resultsDiv').innerHTML = `
+                <div class="alert ${alertType}">${alertMessage}</div>
+                <div class="results">
+                    <h3>Optimal Configuration - ${config.baseName}, ${config.location}</h3>
+                    <div class="metric">
+                        <span class="metric-label">Algorithm Used:</span>
+                        <span class="metric-value">${result.algorithm}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Generation:</span>
+                        <span class="metric-value">${totalGen.toFixed(2)} kW</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Load Demand:</span>
+                        <span class="metric-value">${config.loadDemand} kW</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">System Efficiency:</span>
+                        <span class="metric-value">${efficiency}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Surplus/Deficit:</span>
+                        <span class="metric-value">${(totalGen - config.loadDemand).toFixed(2)} kW</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Optimized Cost:</span>
+                        <span class="metric-value">₹${result.fitness.toFixed(2)}/hour</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Renewable Energy Share:</span>
+                        <span class="metric-value">${((solarOut + windOut) / totalGen * 100).toFixed(1)}%</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('energySources').innerHTML = `
+                <div class="equipment-item">
+                    <strong>☀️ Solar Power</strong>
+                    Output: ${solarOut.toFixed(2)} kW<br>
+                    Utilization: ${(result.position[0] * 100).toFixed(1)}%
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${result.position[0] * 100}%"></div>
+                    </div>
+                </div>
+                <div class="equipment-item">
+                    <strong>🌬️ Wind Power</strong>
+                    Output: ${windOut.toFixed(2)} kW<br>
+                    Utilization: ${(result.position[1] * 100).toFixed(1)}%
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${result.position[1] * 100}%"></div>
+                    </div>
+                </div>
+                <div class="equipment-item">
+                    <strong>⛽ Diesel Generator</strong>
+                    Output: ${dieselOut.toFixed(2)} kW<br>
+                    Utilization: ${(result.position[2] * 100).toFixed(1)}%
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${result.position[2] * 100}%"></div>
+                    </div>
+                </div>
+                <div class="equipment-item">
+                    <strong>🔋 Battery Storage</strong>
+                    Output: ${batteryOut.toFixed(2)} kW<br>
+                    Utilization: ${(result.position[3] * 100).toFixed(1)}%
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${result.position[3] * 100}%"></div>
+                    </div>
+                </div>
+            `;
+
+            const dieselCost = dieselOut * 0.3 * config.dieselPrice;
+            const renewableSavings = (solarOut + windOut) * 2;
+            const emissionsSaved = (solarOut + windOut) * 0.5;
+
+            document.getElementById('costAnalysis').innerHTML = `
+                <div class="results">
+                    <div class="metric">
+                        <span class="metric-label">💰 Diesel Cost:</span>
+                        <span class="metric-value">₹${dieselCost.toFixed(2)}/hr</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🌱 Renewable Savings:</span>
+                        <span class="metric-value">₹${renewableSavings.toFixed(2)}/hr</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📅 Daily Operating Cost:</span>
+                        <span class="metric-value">₹${(result.fitness * 24).toFixed(2)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📆 Monthly Estimate:</span>
+                        <span class="metric-value">₹${(result.fitness * 24 * 30).toFixed(2)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">📊 Yearly Estimate:</span>
+                        <span class="metric-value">₹${(result.fitness * 24 * 365).toFixed(2)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">🌍 CO₂ Emissions Reduced:</span>
+                        <span class="metric-value">${emissionsSaved.toFixed(2)} kg/hr</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== DISPLAY COMPARISON ====================
+        function displayComparison(results, config) {
+            document.getElementById('comparisonCard').style.display = 'block';
+            
+            let tableHTML = `
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Final Cost (₹/hr)</th>
+                            <th>Total Generation (kW)</th>
+                            <th>Renewable %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach(result => {
+                const solarOut = result.position[0] * config.solarCap * (config.solarIrr / 1000);
+                const windOut = result.position[1] * config.windCap * Math.pow(config.windSpeed / 10, 3);
+                const dieselOut = result.position[2] * config.dieselCap;
+                const batteryOut = result.position[3] * config.batteryCap * 0.5;
+                const totalGen = solarOut + windOut + dieselOut + batteryOut;
+                const renewablePercent = ((solarOut + windOut) / totalGen * 100).toFixed(1);
+                const isBest = result.fitness === Math.min(...results.map(r => r.fitness));
+
+                tableHTML += `
+                    <tr>
+                        <td><strong>${result.algorithm}</strong></td>
+                        <td>₹${result.fitness.toFixed(2)}</td>
+                        <td>${totalGen.toFixed(2)} kW</td>
+                        <td>${renewablePercent}%</td>
+                        <td>${isBest ? '🏆 Best' : '✓ Good'}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            document.getElementById('comparisonResults').innerHTML = tableHTML;
+        }
+
+        // ==================== DISPLAY SYSTEM STATISTICS ====================
+        function displaySystemStats(result, config) {
+            const solarOut = result.position[0] * config.solarCap * (config.solarIrr / 1000);
+            const windOut = result.position[1] * config.windCap * Math.pow(config.windSpeed / 10, 3);
+            const dieselOut = result.position[2] * config.dieselCap;
+            const batteryOut = result.position[3] * config.batteryCap * 0.5;
+            const totalGen = solarOut + windOut + dieselOut + batteryOut;
+
+            const reliability = (totalGen >= config.loadDemand ? 100 : (totalGen / config.loadDemand * 100)).toFixed(1);
+            const carbonFootprint = (dieselOut * 2.68).toFixed(2);
+            const fuelConsumption = (dieselOut * 0.3).toFixed(2);
+
+            document.getElementById('systemStats').innerHTML = `
+                <div class="results">
+                    <h3>📊 Performance Metrics</h3>
+                    <div class="metric">
+                        <span class="metric-label">System Reliability:</span>
+                        <span class="metric-value">${reliability}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Carbon Footprint:</span>
+                        <span class="metric-value">${carbonFootprint} kg CO₂/hr</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Fuel Consumption:</span>
+                        <span class="metric-value">${fuelConsumption} L/hr</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Solar Contribution:</span>
+                        <span class="metric-value">${(solarOut / totalGen * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Wind Contribution:</span>
+                        <span class="metric-value">${(windOut / totalGen * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Diesel Dependency:</span>
+                        <span class="metric-value">${(dieselOut / totalGen * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Battery Usage:</span>
+                        <span class="metric-value">${(batteryOut / totalGen * 100).toFixed(1)}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== PLOT CONVERGENCE CURVE ====================
+        function plotConvergence(history) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 50;
+            const graphWidth = canvas.width - 2 * padding;
+            const graphHeight = canvas.height - 2 * padding;
+
+            const maxFit = Math.max(...history.map(h => h.fitness));
+            const minFit = Math.min(...history.map(h => h.fitness));
+            const range = maxFit - minFit;
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Cost (₹/hour)', 10, 30);
+            ctx.fillText('Iterations', canvas.width / 2 - 30, canvas.height - 10);
+
+            ctx.font = '11px Arial';
+            for (let i = 0; i <= 5; i++) {
+                const value = minFit + (range * i / 5);
+                const y = canvas.height - padding - (i / 5 * graphHeight);
+                ctx.fillText(value.toFixed(0), 5, y + 4);
+            }
+
+            const step = Math.ceil(history.length / 10);
+            for (let i = 0; i < history.length; i += step) {
+                const x = padding + (i / (history.length - 1)) * graphWidth;
+                ctx.fillText(i + 1, x - 10, canvas.height - padding + 20);
+            }
+
+            ctx.strokeStyle = '#ff9933';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            history.forEach((point, i) => {
+                const x = padding + (i / (history.length - 1)) * graphWidth;
+                const y = canvas.height - padding - ((point.fitness - minFit) / range) * graphHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            history.forEach((point, i) => {
+                if (i % 3 === 0 || i === history.length - 1) {
+                    const x = padding + (i / (history.length - 1)) * graphWidth;
+                    const y = canvas.height - padding - ((point.fitness - minFit) / range) * graphHeight;
+                    
+                    ctx.fillStyle = '#138808';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Optimization Convergence Curve', canvas.width / 2 - 120, 20);
+        }
+
+        // ==================== PLOT MULTIPLE CONVERGENCE CURVES ====================
+        function plotMultipleConvergence(histories) {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const padding = 50;
+            const graphWidth = canvas.width - 2 * padding;
+            const graphHeight = canvas.height - 2 * padding;
+
+            const allFitness = histories.flat().map(h => h.fitness);
+            const maxFit = Math.max(...allFitness);
+            const minFit = Math.min(...allFitness);
+            const range = maxFit - minFit;
+
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Cost (₹/hour)', 10, 30);
+            ctx.fillText('Iterations', canvas.width / 2 - 30, canvas.height - 10);
+
+            const colors = ['#ff9933', '#138808', '#2196f3'];
+            const labels = ['PSO', 'WOA', 'Hybrid'];
+
+            histories.forEach((history, index) => {
+                ctx.strokeStyle = colors[index];
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+
+                history.forEach((point, i) => {
+                    const x = padding + (i / (history.length - 1)) * graphWidth;
+                    const y = canvas.height - padding - ((point.fitness - minFit) / range) * graphHeight;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+
+                ctx.stroke();
+            });
+
+            const legendX = canvas.width - 150;
+            const legendY = 50;
+            labels.forEach((label, i) => {
+                ctx.fillStyle = colors[i];
+                ctx.fillRect(legendX, legendY + i * 25, 20, 3);
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Arial';
+                ctx.fillText(label, legendX + 30, legendY + i * 25 + 3);
+            });
+
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Algorithm Comparison', canvas.width / 2 - 90, 20);
+        }
+
+        // ==================== INITIALIZE ON LOAD ====================
+        window.onload = function() {
+            runOptimization();
+        };
+    </script>
+</body>
+</html>
